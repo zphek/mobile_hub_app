@@ -31,3 +31,9 @@
 .animate-move-3 {
     animation: move-3 6s ease-in-out infinite;
 }
+
+
+.sidebar-option{
+    @apply text-slate-600 cursor-pointer select-none;
+    @apply flex gap-x-2 items-center py-3 px-16 hover:text-orange-500 hover:bg-orange-50 hover:border-r-2 hover:border-r-orange-500 transition-[500ms];
+}
