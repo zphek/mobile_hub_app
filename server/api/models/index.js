@@ -1,12 +1,13 @@
 const { Sequelize } = require("sequelize")
+require("dotenv").config()
 
-const sequelize = new Sequelize('verceldb', 'default', 'W4LJIHrpEoD3', {
-    host: "ep-quiet-glitter-a4b00sct-pooler.us-east-1.aws.neon.tech",
+const sequelize = new Sequelize(process.env.POSTGRES_DATABASE, process.env.POSTGRES_USER, process.env.POSTGRES_PASSWORD, {
+    host: process.env.POSTGRES_HOST,
     dialect: 'postgres',
     dialectOptions: {
         ssl: {
             require: true,
-            rejectUnauthorized: false // This line can be removed if you have proper certificates.
+            rejectUnauthorized: false
         }
     }
 });
