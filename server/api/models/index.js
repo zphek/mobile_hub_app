@@ -27,7 +27,7 @@ const models = {
     Phones: require("./Phones.model")(sequelize, DataTypes),
     PhoneState: require("./PhoneState")(sequelize, DataTypes),
     Tokens: require("./Tokens.model")(sequelize, DataTypes),
-    Category: require("./Category.model")(sequelize, DataTypes),
+    Category: require("./Brand.model")(sequelize, DataTypes),
     sequelize
 }
 
