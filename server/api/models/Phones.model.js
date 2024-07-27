@@ -1,12 +1,12 @@
 module.exports = (sequelize, DataTypes)=>{
     const Phone = sequelize.define('Phones', {
         phoneId: {
-            type: DataTypes.NUMBER,
-            autoIncrement: true,
-            unique: true
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
         },
         userId: {
-            type: DataTypes.NUMBER
+            type: DataTypes.INTEGER
         },
         phoneName: {
             type: DataTypes.STRING,
@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes)=>{
             type: DataTypes.STRING
         },
         phoneState: {
-            type: DataTypes.NUMBER,
+            type: DataTypes.INTEGER,
         },
         active: {
             type: DataTypes.BOOLEAN

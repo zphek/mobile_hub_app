@@ -1,9 +1,9 @@
 module.exports = (sequelize, DataTypes)=>{
     const Log = sequelize.define('Logs', {
         logId: {
-            type: DataTypes.NUMBER,
-            autoIncrement: true,
-            unique: true
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
         },
         action: {
             type: DataTypes.STRING

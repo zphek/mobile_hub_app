@@ -1,16 +1,16 @@
 module.exports = (sequelize, DataTypes) => {
     const Token = sequelize.define('Tokens', {
         tokenId: {
-            type: DataTypes.NUMBER,
-            autoIncrement: true,
-            unique: true
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
         },
         token: {
             type: DataTypes.STRING,
             unique: true
         },
         userId: {
-            type: DataTypes.NUMBER,
+            type: DataTypes.INTEGER,
         },
         active: {
             type: DataTypes.BOOLEAN

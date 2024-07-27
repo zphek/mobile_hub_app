@@ -1,4 +1,4 @@
-const { Sequelize } = require("sequelize")
+const { Sequelize, DataTypes } = require("sequelize")
 require("dotenv").config()
 
 const sequelize = new Sequelize(process.env.POSTGRES_DATABASE, process.env.POSTGRES_USER, process.env.POSTGRES_PASSWORD, {
@@ -21,4 +21,14 @@ const sequelize = new Sequelize(process.env.POSTGRES_DATABASE, process.env.POSTG
       }
 })()
 
-module.exports = sequelize;
+const models = {
+    User: require("./User.model")(sequelize, DataTypes),
+    Logs: require("./Logs.model")(sequelize, DataTypes),
+    Phones: require("./Phones.model")(sequelize, DataTypes),
+    PhoneState: require("./PhoneState")(sequelize, DataTypes),
+    Tokens: require("./Tokens.model")(sequelize, DataTypes),
+    Category: require("./Category.model")(sequelize, DataTypes),
+    sequelize
+}
+
+module.exports = models;

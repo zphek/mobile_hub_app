@@ -1,9 +1,9 @@
 module.exports = (sequelize, DataTypes)=>{
     const PhoneState = sequelize.define('PhoneStates', {
         stateId: {
-            type: DataTypes.NUMBER,
-            autoIncrement: true,
-            unique: true
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
         },
         state: {
             type: DataTypes.STRING

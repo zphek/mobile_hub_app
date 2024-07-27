@@ -10,7 +10,7 @@ app.get("/", (req, res)=>{
 })
 
 
-connection.sync({ force: true })
+connection.sequelize.sync({ force: true })
 .then(()=> {
     app.listen(3000, ()=>{
         console.log("Server running in port 3000!")
