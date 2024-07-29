@@ -66,4 +66,14 @@ models.Phones.hasMany(models.PhoneImages, {
     foreignKey: "phoneId"
 });
 models.PhoneImages.belongsTo(models.Phones);
+// Tokens -> Users relation.
+models.User.hasMany(models.Tokens, {
+    foreignKey: "userId"
+});
+models.Tokens.belongsTo(models.User);
+// Logs -> User relation.
+models.User.hasMany(models.Logs, {
+    foreignKey: "userId"
+});
+models.Logs.belongsTo(models.User);
 exports.default = models;

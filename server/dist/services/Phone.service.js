@@ -16,11 +16,13 @@ const index_1 = __importDefault(require("../models/index"));
 const Phones_model_1 = __importDefault(require("../models/Phones.model"));
 const PhoneImages_model_1 = __importDefault(require("../models/PhoneImages.model"));
 const sequelize_1 = require("sequelize");
+const PhoneMockup_1 = __importDefault(require("../data/PhoneMockup"));
 const Phone = (0, Phones_model_1.default)(index_1.default.sequelize, sequelize_1.DataTypes);
 const PhoneImages = (0, PhoneImages_model_1.default)(index_1.default.sequelize, sequelize_1.DataTypes);
 class PhoneService {
     createPhone(body, files) {
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            console.log("-------");
             if (!body.payload.userId || !body.brandId || !body.phoneName || !body.phoneDescription || !body.phoneState) {
                 reject({ message: "The fields brand, phone name, phone description and phone state not must go empty.", error: true });
                 return;
@@ -44,7 +46,8 @@ class PhoneService {
                     brandId: body.brandId,
                     phoneName: body.phoneName,
                     phoneDescription: body.phoneDescription,
-                    phoneState: body.phoneState
+                    phoneState: body.phoneState,
+                    active: true
                 })
                     .then((response) => {
                     console.log(response);
@@ -69,7 +72,39 @@ class PhoneService {
             }
         }));
     }
-    loadPhones() {
+    loadPhones(userId, socket = null) {
+        return new Promise((resolve, reject) => {
+            const totalPhones = PhoneMockup_1.default.length;
+            let completedPhones = 0;
+            const promises = PhoneMockup_1.default.map(phone => {
+                return Phone.create({
+                    userId,
+                    brandId: 1,
+                    phoneName: phone.phoneName,
+                    phoneDescription: phone.phoneDescription.substring(0, 40),
+                    phoneState: phone.phoneState,
+                    active: true
+                })
+                    .then(response => {
+                    completedPhones++;
+                    if (socket) {
+                        socket.emit("loadPhoneResponse", completedPhones / totalPhones);
+                    }
+                    console.log(`Progress: ${((completedPhones / totalPhones) * 100).toFixed(2)}%`);
+                    return response;
+                })
+                    .catch(err => {
+                    console.log(err);
+                });
+            });
+            Promise.all(promises)
+                .then(responses => {
+                resolve({ responses, error: false });
+            })
+                .catch(err => {
+                reject({ err, error: true });
+            });
+        });
     }
     getPhones(id, page) {
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
@@ -85,7 +120,7 @@ class PhoneService {
             (_a = Phone.sequelize) === null || _a === void 0 ? void 0 : _a.query(`
                 SELECT DISTINCT ON ("Phones"."phoneId") "Phones".*, "PhoneImages"."imageId", "PhoneImages"."imageUrl"
                 FROM "Phones"
-                INNER JOIN "PhoneImages" ON "Phones"."phoneId" = "PhoneImages"."phoneId"
+                LEFT JOIN "PhoneImages" ON "Phones"."phoneId" = "PhoneImages"."phoneId"
                 WHERE "Phones"."userId" = ${id}
                 ORDER BY "Phones"."phoneId", "PhoneImages"."imageId" ASC
                 LIMIT ${LIMIT_PER_PAGE} OFFSET ${OFFSET};
@@ -106,10 +141,10 @@ class PhoneService {
             })
                 .then((response) => {
                 if (response) {
-                    resolve(Object.assign(Object.assign({}, response), { error: false }));
+                    resolve({ data: response.dataValues, error: false });
                     return;
                 }
-                reject({ message: "Something wrong has happen.", error: true });
+                reject({ message: "Something wrong has happened.", error: true });
             })
                 .catch((err) => {
                 reject(Object.assign(Object.assign({}, err), { error: true }));
@@ -118,9 +153,39 @@ class PhoneService {
     }
     updatePhone() {
     }
-    deletePhones() {
-        return new Promise((resolve, reject) => {
-        });
+    deletePhones(userId) {
+        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const phones = yield Phone.findAll({ where: { userId } });
+                const totalPhones = phones.length;
+                let completedPhones = 0;
+                const promises = phones.map(phone => {
+                    return Phone.destroy({
+                        where: {
+                            phoneId: phone.phoneId,
+                            userId: phone.userId
+                        }
+                    })
+                        .then(() => {
+                        completedPhones++;
+                        console.log(`Progress: ${((completedPhones / totalPhones) * 100).toFixed(2)}%`);
+                    })
+                        .catch(err => {
+                        throw err;
+                    });
+                });
+                Promise.all(promises)
+                    .then(() => {
+                    resolve({ message: `${completedPhones} phones were successfully deleted.`, error: false });
+                })
+                    .catch(err => {
+                    reject({ err, error: true });
+                });
+            }
+            catch (err) {
+                reject({ err, error: true });
+            }
+        }));
     }
     deletePhone(phoneId, userId) {
         return new Promise((resolve, reject) => {

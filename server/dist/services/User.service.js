@@ -15,10 +15,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
 const index_1 = __importDefault(require("../models/index"));
 const User_model_1 = __importDefault(require("../models/User.model"));
+const Logs_model_1 = __importDefault(require("../models/Logs.model"));
 const randomstring_1 = __importDefault(require("randomstring"));
 const encrypt_1 = require("../utilities/encrypt");
 const jwtencoder_1 = require("../utilities/jwtencoder");
 const User = (0, User_model_1.default)(index_1.default.sequelize, sequelize_1.DataTypes);
+const Log = (0, Logs_model_1.default)(index_1.default.sequelize, sequelize_1.DataTypes);
 class userService {
     userLogin(body) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -39,10 +41,10 @@ class userService {
                             resolve({ message: "User logged in.", logged: true, token });
                             return;
                         }
-                        resolve({ message: "Username or password are incorrect.", logged: false });
+                        reject({ message: "Username or password are incorrect.", logged: false });
                         return;
                     }
-                    reject({ message: "Username doesn't exist." });
+                    reject({ message: "Username doesn't exist.", logged: false });
                     return;
                 }))
                     .catch((response) => {
@@ -51,13 +53,10 @@ class userService {
             });
         });
     }
-    userRegister(body, File) {
+    userRegister(body) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!body.email || !body.password) {
                 return Promise.reject({ message: "Email, password are required." });
-            }
-            if (!File) {
-                return Promise.reject({ message: "The user photo is required." });
             }
             return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
                 try {
@@ -76,7 +75,7 @@ class userService {
                         email: body.email,
                         password: (0, encrypt_1.encryptPassword)(body.password, hash),
                         passwordHash: hash,
-                        imageUrl: File.path,
+                        imageUrl: "",
                         createdAt: new Date(),
                         updatedAt: new Date()
                     })
@@ -93,6 +92,25 @@ class userService {
                     reject(error);
                 }
             }));
+        });
+    }
+    getLogs(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve, reject) => {
+                Log.findAll({
+                    where: {
+                        userId
+                    }
+                })
+                    .then((response) => {
+                    if (response) {
+                        resolve({ data: response, error: false });
+                    }
+                })
+                    .catch((err) => {
+                    reject({ err, error: true });
+                });
+            });
         });
     }
 }

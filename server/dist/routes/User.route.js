@@ -7,6 +7,7 @@ const express_1 = require("express");
 const User_controller_1 = __importDefault(require("../controllers/User.controller"));
 const multer_1 = __importDefault(require("multer"));
 const path_1 = __importDefault(require("path"));
+const middleware_1 = require("./middleware");
 const userRouter = (0, express_1.Router)();
 const storage = multer_1.default.diskStorage({
     destination: "./uploads/userPhotos",
@@ -17,6 +18,7 @@ const storage = multer_1.default.diskStorage({
 });
 const upload = (0, multer_1.default)({ storage: storage });
 userRouter
+    .get("/logs", middleware_1.authMiddleware, User_controller_1.default.getLogs)
     .post("/login", User_controller_1.default.userLogin)
-    .post("/register", upload.single('file'), User_controller_1.default.userRegister);
+    .post("/register", User_controller_1.default.userRegister);
 exports.default = userRouter;

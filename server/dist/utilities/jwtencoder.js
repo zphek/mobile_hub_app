@@ -30,7 +30,7 @@ function JWTdecoder(token) {
         return decoded;
     }
     catch (error) {
-        console.error('JWT decoding failed:', error);
+        // console.error('JWT decoding failed:', error);
         return null;
     }
 }
@@ -40,7 +40,7 @@ function JWTchecker(token) {
         return true;
     }
     catch (error) {
-        console.error('JWT verification failed:', error);
+        // console.error('JWT verification failed:', error);
         return false;
     }
 }

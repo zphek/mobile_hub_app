@@ -1,75 +1,124 @@
-import { Request, response, Response } from "express";
+import { Request, Response } from "express";
 import PhoneService from "../services/Phone.service";
 import { JWTdecoder } from "../utilities/jwtencoder";
+import { tokenDecoder } from "../utilities/tokenHandler";
+import models from "../models/index";
+import model from "../models/Logs.model";
+import { DataTypes } from "sequelize";
 
-class phoneController{
-    createPhone(req: Request, res: Response){
-        const { payload }:any = JWTdecoder(req.headers.authorization?.split(' ')[1]);
-        const body = {...req.body, payload}
-        console.log(body)
-        
-        PhoneService.createPhone(body, req.files)
-        .then((response)=>{
-            return res.json(response)
-        })
-        .catch((err)=>{
-            return res.json(err)
-        })
-    }
+const Log = model(models.sequelize, DataTypes);
 
-    loadPhones(req: Request, res: Response){
+class PhoneController {
+    async createPhone(req: Request, res: Response) {
+        try {
+            const token = req.headers.authorization?.split(' ')[1];
+            const payload: any = JWTdecoder(token)?.payload || tokenDecoder(token)?.payload;
+            const body = { ...req.body, payload };
 
-    }
+            console.log(payload);
 
-    getPhones(req: Request, res: Response){
-        if(!req.query.page){
-            return res.json({ message: "You have to especify the page you wanna see.", error: true });
-        }
+            const response = await PhoneService.createPhone(body, req.files);
 
-        if(parseInt(req.query.page) < 1){
-            return res.json({ message: "The page number can't be less than 1.", error: true })
-        }
+            await Log.create({
+                logId: null,
+                action: `NEW - ${body.phoneName} was added.`,
+                userId: payload.userId,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            });
 
-        const { payload }:any = JWTdecoder(req.headers.authorization?.split(' ')[1]);
-        const body = {...req.body, payload}
-
-        PhoneService.getPhones(body.payload.userId, parseInt(req.query?.page))
-        .then((response)=>{
             return res.json(response);
-        })
-        .catch((err)=>{
-            return res.json(err)
-        })
-    }
-
-    getPhone(req: Request, res: Response){
-
-    }
-
-    updatePhone(req: Request, res: Response){
-
-    }
-    
-    deletePhones(req: Request, res: Response){
-
-    }
-
-    deletePhone(req: Request, res: Response){
-        if(!req.params.id){
-            return res.json({ message: "Miss the id phone param.", error: true })
+        } catch (err) {
+            return res.status(500).json(err);
         }
+    }
 
-        const { payload }:any = JWTdecoder(req.headers.authorization?.split(' ')[1]);
-        const body = {...req.body, payload}
+    async getPhones(req: Request, res: Response) {
+        try {
+            if (!req.query.page) {
+                return res.status(400).json({ message: "You have to specify the page you want to see.", error: true });
+            }
 
-        PhoneService.deletePhone(parseInt(req.params.id), payload.userId)
-        .then((response)=>{
-            return res.json(response)
-        })
-        .catch((err)=>{
-            return res.json(err)
-        })
+            const page = parseInt(req.query.page as string);
+            if (page < 1) {
+                return res.status(400).json({ message: "The page number can't be less than 1.", error: true });
+            }
+
+            const token = req.headers.authorization?.split(' ')[1];
+            const payload: any = JWTdecoder(token)?.payload || tokenDecoder(token)?.payload;
+            const response = await PhoneService.getPhones(payload.userId, page);
+
+            await Log.create({
+                logId: null,
+                action: `GET - Phones listed by user ${payload.userId}.`,
+                userId: payload.userId,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            });
+
+            return res.json(response);
+        } catch (err) {
+            return res.status(500).json(err);
+        }
+    }
+
+    async getPhone(req: Request, res: Response) {
+        try {
+            const { id } = req.params;
+            if (!id) {
+                return res.status(400).json({ message: "The id param is missing.", error: true });
+            }
+
+            const token = req.headers.authorization?.split(' ')[1];
+            const payload: any = JWTdecoder(token)?.payload || tokenDecoder(token)?.payload;
+            const response = await PhoneService.getPhone(id, payload.userId);
+
+            return res.json(response);
+        } catch (err) {
+            return res.status(500).json(err);
+        }
+    }
+
+    async deletePhone(req: Request, res: Response) {
+        try {
+            const { id } = req.params;
+            if (!id) {
+                return res.status(400).json({ message: "The id phone param is missing.", error: true });
+            }
+
+            const token = req.headers.authorization?.split(' ')[1];
+            const payload: any = JWTdecoder(token)?.payload || tokenDecoder(token)?.payload;
+
+            console.log(payload);
+
+            const response = await PhoneService.deletePhone(parseInt(id), payload.userId);
+
+            return res.json(response);
+        } catch (err) {
+            return res.status(500).json(err);
+        }
+    }
+
+    async loadPhones(req: Request, res: Response) {
+        try {
+            const token = req.headers.authorization?.split(' ')[1];
+            const payload: any = JWTdecoder(token)?.payload || tokenDecoder(token)?.payload;
+        
+            const response = PhoneService.loadPhones(payload.userId)
+
+            return res.json(response);
+        } catch (err) {
+            return res.status(500).json(err);
+        }
+    }
+
+    async updatePhone(req: Request, res: Response) {
+        // Implementar lógica aquí
+    }
+
+    async deletePhones(req: Request, res: Response) {
+        // Implementar lógica aquí
     }
 }
 
-export default new phoneController();
+export default new PhoneController();

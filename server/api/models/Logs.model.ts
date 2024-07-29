@@ -10,6 +10,13 @@ export default (sequelize:Sequelize, DataTypes:any)=>{
         action: {
             type: DataTypes.STRING
         },
+        userId:{
+            type: DataTypes.INTEGER,
+            references: {
+                model: 'Users',
+                key: 'userId'
+            }
+        },
         createdAt: {
             type: DataTypes.DATE
         },

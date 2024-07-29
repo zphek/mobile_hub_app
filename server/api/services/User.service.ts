@@ -1,11 +1,13 @@
 import { DataTypes } from "sequelize";
 import models from "../models/index";
 import model from "../models/User.model";
+import model2 from "../models/Logs.model"
 import rstring from 'randomstring';
 import { comparePassword, encryptPassword } from "../utilities/encrypt";
 import { JWTencoder } from "../utilities/jwtencoder";
 
 const User = model(models.sequelize, DataTypes);
+const Log = model2(models.sequelize, DataTypes)
 
 interface LoginParams {
     email: string;
@@ -39,11 +41,11 @@ class userService {
                         return;
                     }
 
-                    resolve({ message: "Username or password are incorrect.", logged: false });
+                    reject({ message: "Username or password are incorrect.", logged: false });
                     return;
                 }
 
-                reject({ message: "Username doesn't exist." });
+                reject({ message: "Username doesn't exist.", logged: false });
                 return;
             })
             .catch((response) => {
@@ -52,13 +54,9 @@ class userService {
         });
     }
     
-    async userRegister(body: RegisterParams, File: any) {
+    async userRegister(body: RegisterParams) {
         if (!body.email || !body.password) {
             return Promise.reject({ message: "Email, password are required." });
-        }
-
-        if(!File){
-            return Promise.reject({ message: "The user photo is required." });
         }
 
         return new Promise(async (resolve, reject) => {
@@ -81,7 +79,7 @@ class userService {
                     email: body.email,
                     password: encryptPassword(body.password, hash),
                     passwordHash: hash,
-                    imageUrl: File.path,
+                    imageUrl: "",
                     createdAt: new Date(),
                     updatedAt: new Date()
                 })
@@ -97,6 +95,25 @@ class userService {
                 reject(error);
             }
         });
+    }
+
+    async getLogs(userId: number){
+        return new Promise((resolve, reject)=>{
+            Log.findAll({
+                where: {
+                    userId
+                }
+            })
+            .then((response)=>{
+                if(response){
+                    resolve({ data: response, error: false })
+                }
+            })
+            .catch((err)=>{
+                reject({ err, error: true })
+            })
+
+        })
     }
 }
 

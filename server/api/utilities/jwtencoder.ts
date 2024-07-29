@@ -13,7 +13,7 @@ export function JWTdecoder(token: string) {
         const decoded = jwt.decode(token, { complete: true });
         return decoded;
     } catch (error) {
-        console.error('JWT decoding failed:', error);
+        // console.error('JWT decoding failed:', error);
         return null;
     }
 }
@@ -23,7 +23,7 @@ export function JWTchecker(token: string) {
         jwt.verify(token, SECRET);
         return true;
     } catch (error) {
-        console.error('JWT verification failed:', error);
+        // console.error('JWT verification failed:', error);
         return false;
     }
 }

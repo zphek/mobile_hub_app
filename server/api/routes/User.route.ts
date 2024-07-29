@@ -2,6 +2,7 @@ import {Request, Response, Router } from "express";
 import UserController from "../controllers/User.controller";
 import multer from "multer";
 import path from "path";
+import { authMiddleware } from "./middleware";
 const userRouter = Router();
 
 const storage = multer.diskStorage({
@@ -15,7 +16,8 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 userRouter
+    .get("/logs", authMiddleware, UserController.getLogs)
     .post("/login", UserController.userLogin )
-    .post("/register", upload.single('file'), UserController.userRegister )
+    .post("/register", UserController.userRegister )
 
 export default userRouter;

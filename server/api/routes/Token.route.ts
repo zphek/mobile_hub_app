@@ -1,16 +1,12 @@
-import { Router, Request, Response } from "express";
+import { Router } from "express";
 import { authMiddleware } from "./middleware";
+import TokenController from "../controllers/Token.controller";
 
 const tokenRouter = Router();
 
-const SECRET:string = "bernardo1234"
-
 tokenRouter
-    .post("/get", authMiddleware, (req: Request, res: Response)=>{
-        
-    })
-    .delete("/delete/:id", authMiddleware, (req: Request, res: Response)=>{
-
-    })
+    .get("/get", authMiddleware, TokenController.getTokens)
+    .post("/create", authMiddleware, TokenController.createToken)
+    .delete("/delete/:id", authMiddleware, TokenController.deleteToken)
 
 export default tokenRouter;

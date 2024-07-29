@@ -50,6 +50,7 @@ models.User.hasOne(models.Phones, {
 
 models.Phones.belongsTo(models.User)
 
+
 // Phones -> Brands relation.
 models.Brand.hasOne(models.Phones, {
     foreignKey: "brandId"
@@ -65,5 +66,23 @@ models.Phones.hasMany(models.PhoneImages, {
 })
 
 models.PhoneImages.belongsTo(models.Phones)
+
+
+// Tokens -> Users relation.
+
+models.User.hasMany(models.Tokens, {
+    foreignKey: "userId"
+})
+
+models.Tokens.belongsTo(models.User)
+
+
+// Logs -> User relation.
+
+models.User.hasMany(models.Logs, {
+    foreignKey: "userId"
+})
+
+models.Logs.belongsTo(models.User)
 
 export default models;

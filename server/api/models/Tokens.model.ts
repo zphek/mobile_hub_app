@@ -7,12 +7,16 @@ export default (sequelize:Sequelize, DataTypes:any) => {
             primaryKey: true,
             autoIncrement: true
         },
-        token: {
+        tokenReference: {
             type: DataTypes.STRING,
             unique: true
         },
         userId: {
             type: DataTypes.INTEGER,
+            references: {
+                model: 'Users',
+                key: 'userId'
+            }
         },
         active: {
             type: DataTypes.BOOLEAN
