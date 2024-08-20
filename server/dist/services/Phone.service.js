@@ -15,12 +15,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = __importDefault(require("../models/index"));
 const Phones_model_1 = __importDefault(require("../models/Phones.model"));
 const PhoneImages_model_1 = __importDefault(require("../models/PhoneImages.model"));
+const Logs_model_1 = __importDefault(require("../models/Logs.model"));
 const sequelize_1 = require("sequelize");
 const PhoneMockup_1 = __importDefault(require("../data/PhoneMockup"));
 const Phone = (0, Phones_model_1.default)(index_1.default.sequelize, sequelize_1.DataTypes);
 const PhoneImages = (0, PhoneImages_model_1.default)(index_1.default.sequelize, sequelize_1.DataTypes);
+const Log = (0, Logs_model_1.default)(index_1.default.sequelize, sequelize_1.DataTypes);
 class PhoneService {
     createPhone(body, files) {
+        console.log(body);
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
             console.log("-------");
             if (!body.payload.userId || !body.brandId || !body.phoneName || !body.phoneDescription || !body.phoneState) {
@@ -73,38 +76,49 @@ class PhoneService {
         }));
     }
     loadPhones(userId, socket = null) {
-        return new Promise((resolve, reject) => {
-            const totalPhones = PhoneMockup_1.default.length;
-            let completedPhones = 0;
-            const promises = PhoneMockup_1.default.map(phone => {
-                return Phone.create({
-                    userId,
-                    brandId: 1,
-                    phoneName: phone.phoneName,
-                    phoneDescription: phone.phoneDescription.substring(0, 40),
-                    phoneState: phone.phoneState,
-                    active: true
-                })
-                    .then(response => {
-                    completedPhones++;
-                    if (socket) {
-                        socket.emit("loadPhoneResponse", completedPhones / totalPhones);
-                    }
-                    console.log(`Progress: ${((completedPhones / totalPhones) * 100).toFixed(2)}%`);
-                    return response;
+        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const totalPhones = PhoneMockup_1.default.length;
+                let completedPhones = 0;
+                const promises = PhoneMockup_1.default.map(phone => {
+                    return Phone.create({
+                        userId,
+                        brandId: 1,
+                        phoneName: phone.phoneName,
+                        phoneDescription: phone.phoneDescription.substring(0, 40),
+                        phoneState: phone.phoneState,
+                        active: true
+                    })
+                        .then((response) => __awaiter(this, void 0, void 0, function* () {
+                        yield Log.create({
+                            action: `NEW - The phone '${phone.phoneName} was added.'`,
+                            userId,
+                            createdAt: new Date(),
+                            updatedAt: new Date()
+                        });
+                        completedPhones++;
+                        if (socket) {
+                            socket.broadcast.emit("loadPhoneResponse", (completedPhones / totalPhones) * 100);
+                        }
+                        console.log(`Progress: ${((completedPhones / totalPhones) * 100).toFixed(2)}%`);
+                        return response;
+                    }))
+                        .catch(err => {
+                        console.log(err);
+                    });
+                });
+                Promise.all(promises)
+                    .then(responses => {
+                    resolve({ responses, error: false });
                 })
                     .catch(err => {
-                    console.log(err);
+                    reject({ err, error: true });
                 });
-            });
-            Promise.all(promises)
-                .then(responses => {
-                resolve({ responses, error: false });
-            })
-                .catch(err => {
-                reject({ err, error: true });
-            });
-        });
+            }
+            catch (error) {
+                reject(error);
+            }
+        }));
     }
     getPhones(id, page) {
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
@@ -153,7 +167,7 @@ class PhoneService {
     }
     updatePhone() {
     }
-    deletePhones(userId) {
+    deletePhones(userId, socket = null) {
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const phones = yield Phone.findAll({ where: { userId } });
@@ -167,7 +181,16 @@ class PhoneService {
                         }
                     })
                         .then(() => {
+                        Log.create({
+                            action: `DELETE - The phone '${phone.phoneName} was deleted.'`,
+                            userId,
+                            createdAt: new Date(),
+                            updatedAt: new Date()
+                        });
                         completedPhones++;
+                        if (socket) {
+                            socket.broadcast.emit("deletePhoneResponse", (completedPhones / totalPhones) * 100);
+                        }
                         console.log(`Progress: ${((completedPhones / totalPhones) * 100).toFixed(2)}%`);
                     })
                         .catch(err => {
@@ -195,12 +218,18 @@ class PhoneService {
                     userId
                 }
             })
-                .then((response) => {
+                .then((response) => __awaiter(this, void 0, void 0, function* () {
                 if (response) {
+                    yield Log.create({
+                        action: `DELETE - A phone was deleted.'`,
+                        userId,
+                        createdAt: new Date(),
+                        updatedAt: new Date()
+                    });
                     resolve({ message: "The phone was deleted successfully!", error: false });
                 }
                 reject({ message: "Something wrong has happen.", error: true });
-            })
+            }))
                 .catch((err) => {
                 reject(Object.assign(Object.assign({}, err), { error: true }));
             });

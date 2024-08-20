@@ -48,15 +48,15 @@ function Sidebar() {
             </div>
 
             {showUserNavigation && <ul className="flex flex-col">
-                <li className="sidebar-option">
+                <Link to="/tokens" className="sidebar-option">
                     <FontAwesomeIcon icon={faKey} className="h-5"/>
                     Tokens
-                </li>
+                </Link>
                 
-                <li className="sidebar-option">
+                {/* <li className="sidebar-option">
                     <FontAwesomeIcon icon={faGear} className="h-5"/>
                     Settings
-                </li>
+                </li> */}
             </ul>}
         </div>
 

@@ -19,7 +19,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const SECRET = "kmGoDr2HWP";
 function JWTencoder(payload) {
     return __awaiter(this, void 0, void 0, function* () {
-        const JWT = jsonwebtoken_1.default.sign(payload, SECRET, { expiresIn: "1h" });
+        const JWT = jsonwebtoken_1.default.sign(payload, SECRET, { expiresIn: "15h" });
         console.log(JWT);
         return JWT;
     });

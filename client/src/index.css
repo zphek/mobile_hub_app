@@ -41,3 +41,7 @@
 .inputStylized{
     @apply border-b-4 py-2 px-3 outline-none focus:border-b-orange-400 focus:shadow-xl transition-[400ms];
 }
+
+.no-scroll {
+    overflow: hidden;
+}

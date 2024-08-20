@@ -1,11 +1,13 @@
 import models from "../models/index";
 import model from "../models/Phones.model";
 import model2 from "../models/PhoneImages.model"
+import model3 from "../models/Logs.model";
 import { DataTypes } from "sequelize";
 import mockup from "../data/PhoneMockup"
 
 const Phone = model(models.sequelize, DataTypes);
 const PhoneImages = model2(models.sequelize, DataTypes)
+const Log = model3(models.sequelize, DataTypes)
 
 interface createParams{
     payload: any;
@@ -17,6 +19,7 @@ interface createParams{
 
 class PhoneService{
     createPhone(body: createParams, files: any){
+        console.log(body)
         return new Promise(async (resolve, reject)=>{
             console.log("-------")
             if(!body.payload.userId || !body.brandId || !body.phoneName || !body.phoneDescription || !body.phoneState){
@@ -73,32 +76,40 @@ class PhoneService{
     }
 
     loadPhones(userId: number, socket:any = null) {
-        return new Promise((resolve, reject) => {
-            const totalPhones = mockup.length;
-            let completedPhones = 0;
+        return new Promise(async (resolve, reject) => {
+            try {
+                const totalPhones = mockup.length;
+                let completedPhones = 0;
 
-            const promises = mockup.map(phone => {
-                return Phone.create({
-                    userId,
-                    brandId: 1,
-                    phoneName: phone.phoneName,
-                    phoneDescription: phone.phoneDescription.substring(0, 40),
-                    phoneState: phone.phoneState,
-                    active: true
-                })
-                .then(response => {
-                    completedPhones++;
+                const promises = mockup.map(phone => {
+                    return Phone.create({
+                        userId,
+                        brandId: 1,
+                        phoneName: phone.phoneName,
+                        phoneDescription: phone.phoneDescription.substring(0, 40),
+                        phoneState: phone.phoneState,
+                        active: true
+                    })
+                    .then(async (response) => {
+                        await Log.create({
+                            action: `NEW - The phone '${phone.phoneName} was added.'`,
+                            userId,
+                            createdAt: new Date(),
+                            updatedAt: new Date()
+                        })
 
-                    if(socket){
-                        socket.emit("loadPhoneResponse", completedPhones / totalPhones);   
-                    }
-                    console.log(`Progress: ${((completedPhones / totalPhones) * 100).toFixed(2)}%`);
-                    return response;
-                })
-                .catch(err => {
-                    console.log(err);
+                        completedPhones++;
+
+                        if(socket){
+                            socket.broadcast.emit("loadPhoneResponse", (completedPhones / totalPhones) * 100);   
+                        }
+                        console.log(`Progress: ${((completedPhones / totalPhones) * 100).toFixed(2)}%`);
+                        return response;
+                    })
+                    .catch(err => {
+                        console.log(err);
+                    });
                 });
-            });
 
             Promise.all(promises)
                 .then(responses => {
@@ -107,6 +118,9 @@ class PhoneService{
                 .catch(err => {
                     reject({ err, error: true });
                 });
+            } catch (error) {
+                reject(error)
+            }
         });
     }
 
@@ -164,7 +178,7 @@ class PhoneService{
 
     }
 
-    deletePhones(userId: number) {
+    deletePhones(userId: number, socket:any = null) {
         return new Promise(async (resolve, reject) => {
             try {
                 const phones = await Phone.findAll({ where: { userId } });
@@ -179,7 +193,17 @@ class PhoneService{
                         }
                     })
                     .then(() => {
+                        Log.create({
+                            action: `DELETE - The phone '${phone.phoneName} was deleted.'`,
+                            userId,
+                            createdAt: new Date(),
+                            updatedAt: new Date()
+                        })
                         completedPhones++;
+                        if(socket){
+                            socket.broadcast.emit("deletePhoneResponse", (completedPhones / totalPhones) * 100);   
+                        }
+
                         console.log(`Progress: ${((completedPhones / totalPhones) * 100).toFixed(2)}%`);
                     })
                     .catch(err => {
@@ -208,8 +232,15 @@ class PhoneService{
                     userId
                 }
             })
-            .then((response)=>{
+            .then(async (response)=>{
                 if(response){
+                    await Log.create({
+                        action: `DELETE - A phone was deleted.'`,
+                        userId,
+                        createdAt: new Date(),
+                        updatedAt: new Date()
+                    })
+
                     resolve({ message: "The phone was deleted successfully!", error: false })
                 }
 

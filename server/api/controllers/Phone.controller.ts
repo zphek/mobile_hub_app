@@ -15,19 +15,19 @@ class PhoneController {
             const payload: any = JWTdecoder(token)?.payload || tokenDecoder(token)?.payload;
             const body = { ...req.body, payload };
 
-            console.log(payload);
+            // console.log(payload);
+            console.log(req.files)
+            // const response = await PhoneService.createPhone(body, req.files);
 
-            const response = await PhoneService.createPhone(body, req.files);
+            // await Log.create({
+            //     logId: null,
+            //     action: `NEW - ${body.phoneName} was added.`,
+            //     userId: payload.userId,
+            //     createdAt: new Date(),
+            //     updatedAt: new Date()
+            // });
 
-            await Log.create({
-                logId: null,
-                action: `NEW - ${body.phoneName} was added.`,
-                userId: payload.userId,
-                createdAt: new Date(),
-                updatedAt: new Date()
-            });
-
-            return res.json(response);
+            // return res.json(response);
         } catch (err) {
             return res.status(500).json(err);
         }
@@ -117,7 +117,16 @@ class PhoneController {
     }
 
     async deletePhones(req: Request, res: Response) {
-        // Implementar lógica aquí
+        try {
+            const token = req.headers.authorization?.split(' ')[1];
+            const payload: any = JWTdecoder(token)?.payload || tokenDecoder(token)?.payload;
+        
+            const response = PhoneService.deletePhones(payload.userId)
+
+            return res.json(response);
+        } catch (err) {
+            return res.status(500).json(err);
+        }
     }
 }
 

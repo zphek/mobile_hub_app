@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 const SECRET = "kmGoDr2HWP"
 
 export async function JWTencoder(payload:any){
-    const JWT = jwt.sign(payload, SECRET, { expiresIn: "1h" });
+    const JWT = jwt.sign(payload, SECRET, { expiresIn: "15h" });
     console.log(JWT);
     return JWT; 
 }

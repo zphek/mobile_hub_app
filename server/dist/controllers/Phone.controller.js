@@ -27,16 +27,17 @@ class PhoneController {
                 const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(' ')[1];
                 const payload = ((_b = (0, jwtencoder_1.JWTdecoder)(token)) === null || _b === void 0 ? void 0 : _b.payload) || ((_c = (0, tokenHandler_1.tokenDecoder)(token)) === null || _c === void 0 ? void 0 : _c.payload);
                 const body = Object.assign(Object.assign({}, req.body), { payload });
-                console.log(payload);
-                const response = yield Phone_service_1.default.createPhone(body, req.files);
-                yield Log.create({
-                    logId: null,
-                    action: `NEW - ${body.phoneName} was added.`,
-                    userId: payload.userId,
-                    createdAt: new Date(),
-                    updatedAt: new Date()
-                });
-                return res.json(response);
+                // console.log(payload);
+                console.log(req.files);
+                // const response = await PhoneService.createPhone(body, req.files);
+                // await Log.create({
+                //     logId: null,
+                //     action: `NEW - ${body.phoneName} was added.`,
+                //     userId: payload.userId,
+                //     createdAt: new Date(),
+                //     updatedAt: new Date()
+                // });
+                // return res.json(response);
             }
             catch (err) {
                 return res.status(500).json(err);
@@ -129,7 +130,16 @@ class PhoneController {
     }
     deletePhones(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            // Implementar lógica aquí
+            var _a, _b, _c;
+            try {
+                const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(' ')[1];
+                const payload = ((_b = (0, jwtencoder_1.JWTdecoder)(token)) === null || _b === void 0 ? void 0 : _b.payload) || ((_c = (0, tokenHandler_1.tokenDecoder)(token)) === null || _c === void 0 ? void 0 : _c.payload);
+                const response = Phone_service_1.default.deletePhones(payload.userId);
+                return res.json(response);
+            }
+            catch (err) {
+                return res.status(500).json(err);
+            }
         });
     }
 }
