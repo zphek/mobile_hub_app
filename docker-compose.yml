@@ -1,0 +1,25 @@
+version: '1.0.0'
+
+services:
+  api_server:
+    build: ./server
+    ports:
+      - "3000:3000"
+    networks:
+      - my_network
+
+  client_server:
+    build: ./client
+    ports:
+      - "5000:5173"
+    networks:
+      - my_network
+
+  redis:
+    image: "redis:alpine"
+    networks:
+      - my_network
+
+networks:
+  my_network:
+    driver: bridge
